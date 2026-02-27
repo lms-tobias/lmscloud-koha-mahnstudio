@@ -1,0 +1,123 @@
+@charset "utf-8";
+
+body{
+    font: 10pt Arial,Helvetica Neue,Helvetica,sans-serif;
+    text-align: justify; /* Blocksatz */
+    width: 170mm;  /* 210mm - left & right border */
+    margin: 0;
+}
+
+.message {
+	border-collapse: collapse;
+	width: 100%;
+}
+
+.page-header, .page-header-space {
+	height: 60mm;  /* max 60mm !!! */
+}
+
+.page-footer, .page-footer-space {
+	height: 0mm;
+}
+
+.page-footer {
+	position: fixed;
+	bottom: 0;
+	width: 100%;
+	/* border-top: 1px solid black;  /* for demo */
+	/* background: yellow; /* for demo */
+}
+
+.page-header {
+	position: fixed;
+	top: 0mm;
+	width: 100%;
+	/* border-bottom: 1px solid black; /* for demo */
+	/* background: yellow; /* for demo */
+}
+
+.addresses {
+	width: 70%;
+	vertical-align: top;
+}
+
+.return_address {
+	font-size: 8pt;
+	padding-top: 0mm;
+}
+
+.address {
+	padding-top: 0mm;
+	top: -30mm;
+	position: relative;
+}
+
+.library_info {
+	width: 30%;
+	vertical-align: top;
+	padding-top: 0mm;
+	text-align: right;
+}
+
+.topic, .manager, .cardnumber, .date {
+	font-weight: bold;
+	padding-top: 0mm;
+}
+
+.topic, .topictext {
+	width: 15%;
+
+}
+.date, .datetext {
+	width: 15%;
+	text-align: right;
+}
+
+.manager, .managertext, .cardnumber, .cardnumbertext {
+	width: 35%;
+	text-align: center;
+}
+
+.content {
+	width: 100%;
+	padding-top: 5mm;
+}
+
+.content > table{
+	width: 100%;
+	table-layout: fixed;
+}
+
+.content > table th:nth-of-type(1),
+.content > table td:nth-of-type(1) { width: 14%; }
+.content > table th:nth-of-type(2),
+.content > table td:nth-of-type(2) { width: 52%; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.content > table th:nth-of-type(3),
+.content > table td:nth-of-type(3) { width: 16%; }
+.content > table th:nth-of-type(4),
+.content > table td:nth-of-type(4) { width: 18%; }
+
+.content > table td{
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* right column */
+table td:nth-of-type(4), table th:nth-of-type(4), tfoot td:nth-of-type(2) {
+    text-align: right;
+}
+
+@page {
+	size: A4 portrait;
+    margin: 20mm 20mm 20mm;   /* top left/right bottom */
+    
+    width: 210mm;
+    height: 297mm;
+}
+
+@media print {
+   thead {display: table-header-group;} 
+   tfoot {display: table-footer-group;}
+}
+

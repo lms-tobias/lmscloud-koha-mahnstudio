@@ -1,0 +1,125 @@
+<div class="page-header">
+    <!-- Hier evtl. Header(bild) einfügen (erscheint auf jeder Seite) -->
+    </div>
+    <div class="falzmarke"></div>
+    
+    <table class="message">
+    
+    <thead>
+      <tr>
+        <td>
+          <!--place holder for the fixed-position header-->
+          <div class="page-header-space"></div>
+        </td>
+      </tr>
+    </thead>
+    
+    <tbody>
+        <tr>
+            <td colspan="2" style="text-align:center;">
+                <!-- Hier evtl. Header-Bild einfügen, wenn es nur auf die erste Seite soll -->
+            </td>
+        </tr>
+        <tr>
+            <td class="addresses">
+                <div class="return_address"><<branches.branchname>> · <<branches.branchaddress2>> · <<branches.branchzip>> <<branches.branchcity>></div>
+                <div class="address">
+                    <<borrowers.title>><br />
+                    <<borrowers.firstname>> <<borrowers.surname>><br />
+                    <<borrowers.address>> <<borrowers.streetnumber>> <<borrowers.address2>><br />
+                    <<borrowers.zipcode>> <<borrowers.city>>
+                </div>
+            </td>
+            <td class="library_info">
+                <strong><<branches.branchaddress1>><br />
+                <<branches.branchname>><br /></strong>
+                <<branches.branchaddress2>><br />
+                <<branches.branchzip>> <<branches.branchcity>><br /><br />
+                Tel.:<<branches.branchphone>>
+            </td>
+        </tr>
+          
+        <tr>
+            <td colspan="2">
+                <table style="width:100%">
+                <tbody>
+                    <tr>
+                        <td class="topic">Betreff</td>
+                        <td class="cardnumber">Ausweisnummer</td>
+                        <td class="manager">Bearbeiter</td>
+                        <td class="date">Datum</td>
+                    </tr>
+                    <tr>
+                        <td class="topictext">1. Mahnung</td>
+                        <td class="cardnumbertext"><<borrowers.cardnumber>></td>
+                        <td class="managertext"></td>
+                        <td class="datetext"><<today>></td>
+                    </tr>
+                </tbody>
+                </table>
+            </td>
+        </tr> 
+          
+        <tr>
+            <td colspan="2" class="content">
+                <p>Guten Tag <<borrowers.title>> <<borrowers.surname>>,</p>
+                <p>wir möchten Sie an die Abgabe Ihrer aus der <<branches.branchname>> entliehenen Medien erinnern. </p>
+    
+    
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Mediennr.</th>
+                            <th>Titel</th>
+                            <th>Fällig am</th>
+                            <th>Gebühr</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <item>
+                        <tr>
+                            <td><<items.barcode>></td>
+                            <td><<biblio.title>> <<biblioitems.volume>> <<biblioitems.number>> <<items.enumchron>></td>
+                            <td><<issues.date_due|dateonly>></td>
+                            <td><<items.fine>><td>
+                        </tr>
+                        </item>
+                        
+                    </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3">Summe der Säumnisgebühren bis zum Datum des Schreibens:</td>
+                                <td align="right"><<fines>></td>
+                            </tr>
+                            <tr>
+                                <td colspan="3">Gesamtsumme der derzeit offenen Gebühren:</td>
+                                <td><<total_fines>></td>
+                        </tr>
+                    </tfoot>
+                </table>
+                <br />
+                <strong>Die Mahnung ist kostenlos. Die Säumnisgebühren beziehen sich auf die angefallenen Gebühren bis zum Datum des Schreibens. Für jeden weiteren Verzugstag entstehen zusätzliche Gebühren</strong>.<br /><br />
+    
+                Sollten Sie die Medien zwischenzeitlich abgegeben haben, betrachten Sie das Schreiben als gegenstandslos.<br /><br /><br />
+    
+                Mit freundlichen Grüßen<br /><br />
+                - Ihre <<branches.branchname>> -
+            </td>
+        </tr>
+    </tbody>
+    
+    <tfoot>
+        <tr>
+            <td>
+                <!--place holder for the fixed-position footer-->
+                <div class="page-footer-space"></div>
+            </td>
+        </tr>
+    </tfoot>
+    
+    </table>
+    
+    <div class="page-footer">
+    <!-- Hier evtl. Footer einfügen -->
+    </div>
+    

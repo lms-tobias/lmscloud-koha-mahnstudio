@@ -1,0 +1,116 @@
+<div class="page-header">
+</div>
+
+<table class="message">
+
+<thead>
+  <tr>
+    <td>
+      <!--place holder for the fixed-position header-->
+      <div class="page-header-space"></div>
+    </td>
+  </tr>
+</thead>
+
+<tbody>
+<tr>
+<td colspan="2" style="text-align:center;">
+<img src="https://mt-balingen.lmscloud.net/webcustom/images/custom/Briefkopf_BAL_HST.png" style="width:500px;"></img>
+</td>
+</tr>
+	<tr>
+		<td class="addresses">
+			<div class="return_address"><<branches.branchname>> | <<branches.branchaddress1>> | <<branches.branchzip>> <<branches.branchcity>></div>
+			<div class="address">
+				<<borrowers.title>><br />
+				<<borrowers.firstname>> <<borrowers.surname>><br />
+				<<borrowers.address>> <<borrowers.streetnumber>> <<borrowers.address2>><br />
+				<<borrowers.zipcode>> <<borrowers.city>>
+			</div>
+		</td>
+		<td class="library_info">
+			Tel.:<<branches.branchphone>><br />
+eMail: <<branches.branchreplyto>><br />OPAC: <<branches.branchurl>>
+
+		</td>
+	</tr>
+      
+	<tr>
+		<td colspan="2">
+			<table style="width:100%">
+			<tbody>
+				<tr>
+					<td class="topic"></td>
+					<td class="cardnumber"></td>
+					<td class="manager"></td>
+					<td class="date"></td>
+				</tr>
+				<tr>
+					<td class="topictext">1. Mahnung</td>
+					<td class="cardnumbertext">Ihre Benutzer-Nr.: <<borrowers.cardnumber>></td>
+					<td class="managertext"></td>
+					<td class="datetext"><<today>></td>
+				</tr>
+			</tbody>
+			</table>
+		</td>
+	</tr>
+      
+      
+	<tr>
+		<td colspan="2" class="content">
+			<p>Sehr geehrte*r <<borrowers.title>> <<borrowers.surname>>,</p>
+			<p>hiermit erinnern wir Sie an die Abgabe Ihrer entliehenen Medien.<br /> 
+Bitte geben Sie die aufgelisteten Medien umgehend ab.</p>
+
+
+			<table>
+				<thead>
+					<tr>
+						<th>Mediennummer</th>
+						<th>Titel</th>
+						<th>Fristdatum</th>
+					</tr>
+				</thead>
+				<tbody>
+					<item>
+					<tr>
+						<td><<items.barcode>></td>
+						<td><<biblio.title>> <<biblioitems.volume>> <<biblioitems.number>> <<items.enumchron>></td>
+						<td><<issues.date_due|dateonly>></td>
+					</tr>
+					</item>
+					
+				</tbody>
+					<tfoot>
+						<tr>
+							<td colspan="2"><br />Die Gesamtsumme der offenen beträgt inkl. Mahngebühr <br />und evtl. sonstiger offener Gebühren:</td>
+							<td><strong><<total_fines>></strong></td>
+					</tr>
+				</tfoot>
+			</table>
+			<br />
+			<br />
+                        <br />
+
+			Mit freundlichen Grüßen<br /><br />
+			Ihre <<branches.branchname>>
+<br /><br /><small>Um Säumnisgebühren künftig zu vermeiden, teilen Sie uns Ihre e-mail-Adresse mit. Sie erhalten dann vor Ablauf der Leihfrist eine Erinnerung, dass Sie Medien verlängern oder zurückgeben sollten.</small>
+		</td>
+	</tr>
+</tbody>
+
+<tfoot>
+	<tr>
+		<td>
+			<!--place holder for the fixed-position footer-->
+			<div class="page-footer-space"></div>
+		</td>
+	</tr>
+</tfoot>
+
+</table>
+
+<div class="page-footer">
+   <<branches.opac_info>>
+</div>

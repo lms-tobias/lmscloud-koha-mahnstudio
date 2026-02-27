@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LMSCloud Koha MahnStudio</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>LMSCloud Koha MahnStudio</h1>
+    <div class="header-actions">
+      <label class="template-label">
+        Template
+        <select id="templateSelect" title="Vorlage wählen">
+          <!-- Optionen per JS aus templates.config.js -->
+        </select>
+      </label>
+      <button type="button" id="btnBranch" title="Bibliotheksdaten für Platzhalter">Bibliothek</button>
+      <label class="live-toggle">
+        <input type="checkbox" id="livePreview" checked />
+        Live-Vorschau
+      </label>
+      <button type="button" id="btnRefreshPreview">Vorschau aktualisieren</button>
+    </div>
+  </header>
+
+  <dialog id="branchDialog" class="branch-dialog" title="Bibliotheksdaten">
+    <form id="branchForm" method="dialog">
+      <div class="branch-fields">
+        <label><span>Bibliotheksname</span><input type="text" name="branchname" /></label>
+        <label><span>Adresse 1 (z. B. Abteilung)</span><input type="text" name="branchaddress1" /></label>
+        <label><span>Adresse 2 (Straße, Hausnr.)</span><input type="text" name="branchaddress2" /></label>
+        <label><span>PLZ</span><input type="text" name="branchzip" /></label>
+        <label><span>Ort</span><input type="text" name="branchcity" /></label>
+        <label><span>Telefon</span><input type="text" name="branchphone" /></label>
+        <label><span>E-Mail (Reply-To)</span><input type="email" name="branchreplyto" /></label>
+        <label><span>OPAC-URL</span><input type="url" name="branchurl" placeholder="https://…" /></label>
+        <label class="branch-field-full"><span>OPAC-Info / Footer-Text</span><textarea name="opac_info" rows="3"></textarea></label>
+      </div>
+      <label class="branch-save-option">
+        <input type="checkbox" name="persist" checked /> Im Browser speichern (localStorage)
+      </label>
+      <div class="branch-dialog-actions">
+        <button type="submit" id="branchSave">Speichern</button>
+        <button type="button" id="branchCancel">Abbrechen</button>
+      </div>
+    </form>
+  </dialog>
+
+  <main class="app-main" id="appMain">
+    <section class="panel-editors">
+      <div class="editors-tabs">
+        <button type="button" class="tab active" data-tab="html">HTML</button>
+        <button type="button" class="tab" data-tab="css">CSS</button>
+      </div>
+      <div class="editors-content">
+        <div class="editor-wrap active" id="wrapHtml">
+          <div id="editorHtml"></div>
+        </div>
+        <div class="editor-wrap" id="wrapCss">
+          <div id="editorCss"></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="resizer" id="resizer" title="Größe anpassen" aria-label="Bereichsgröße ändern"></div>
+
+    <section class="panel-preview">
+      <div class="preview-toolbar">
+        <span class="preview-label">Druckvorschau</span>
+        <button type="button" id="btnPrint" title="Nur das Mahnschreiben im Druckdialog anzeigen">Drucken</button>
+        <label class="item-count-label">
+          Anzahl Medien
+          <input type="range" id="itemCountSlider" min="1" max="25" value="3" title="1–25" />
+          <input type="number" id="itemCountInput" min="1" max="25" value="3" title="1–25" />
+        </label>
+      </div>
+      <div class="preview-container">
+        <iframe id="previewFrame" title="Druckvorschau des Mahnschreibens"></iframe>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

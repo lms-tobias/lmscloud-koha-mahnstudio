@@ -1,0 +1,113 @@
+<div class="page-header">
+</div>
+
+<table class="message">
+
+<thead>
+  <tr>
+    <td>
+      <!--place holder for the fixed-position header-->
+      <div class="page-header-space"></div>
+    </td>
+  </tr>
+</thead>
+
+<tbody>
+	<tr>
+		<td class="addresses">
+			<div class="return_address"></div>
+			<div class="address">
+				<<borrowers.title>><br />
+				<<borrowers.firstname>> <<borrowers.surname>><br />
+				<<borrowers.address>> <<borrowers.streetnumber>> <<borrowers.address2>><br />
+				<<borrowers.zipcode>> <<borrowers.city>>
+			</div>
+		</td>
+		<td class="library_info">
+		</td>
+	</tr>
+      
+	<tr>
+		<td colspan="2">
+			<table style="width:100%">
+			<tbody>
+				<tr>
+					<td class="topic">Betreff</td>
+					<td class="cardnumber">Ausweisnummer</td>
+					<td class="manager">Bearbeiter</td>
+					<td class="date">Datum</td>
+				</tr>
+				<tr>
+					<td class="topictext">Erinnerung</td>
+					<td class="cardnumbertext"><<borrowers.cardnumber>></td>
+					<td class="managertext">Bibliotheksteam</td>
+					<td class="datetext"><<today>></td>
+				</tr>
+			</tbody>
+			</table>
+		</td>
+	</tr>
+      
+      
+	<tr>
+		<td colspan="2" class="content">
+			<p>Sehr geehrte Leserin, sehr geehrter Leser,</p>
+			<p>Sie haben die nachfolgend aufgeführten Medien nicht rechtzeitig zurückgegeben. </p>
+
+
+			<table>
+				<thead>
+					<tr>
+						<th>Mediennr.</th>
+						<th>Titel</th>
+						<th>Fällig am</th>
+						<th>Gebühr</th>
+					</tr>
+				</thead>
+				<tbody>
+					<item>
+					<tr>
+						<td><<items.barcode>></td>
+						<td><<biblio.title>> <<biblioitems.volume>> <<biblioitems.number>> <<items.enumchron>></td>
+						<td><<issues.date_due|dateonly>></td>
+						<td><<items.fine>><td>
+					</tr>
+					</item>
+					
+				</tbody>
+					<tfoot>
+						<tr>
+							<td colspan="3">Summe der Säumnisgebühren aus diesem Schreiben:</td>
+							<td align="right"><<fines>></td>
+						</tr>
+						<tr>
+							<td colspan="3">Gesamtsumme aller offenen Gebühren auf diesem Konto:</td>
+							<td><<total_fines>></td>
+					</tr>
+				</tfoot>
+			</table>
+			<br />
+			Bitte bringen Sie die aufgeführten Medien schnellstmöglich zurück, da andere Leser bereits darauf warten.<br /><br />
+
+			Mit freundlichen Grüßen<br /><br />
+			- Ihre <<branches.branchname>> -
+			<br /><br />
+			Dieses Schreiben wurde maschinell erstellt und ist auch ohne Unterschrift gültig.
+		</td>
+	</tr>
+</tbody>
+
+<tfoot>
+	<tr>
+		<td>
+			<!--place holder for the fixed-position footer-->
+			<div class="page-footer-space"></div>
+		</td>
+	</tr>
+</tfoot>
+
+</table>
+
+<div class="page-footer">
+</div>
+

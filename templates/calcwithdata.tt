@@ -1,0 +1,11 @@
+[% USE date %]
+[% calc = date.calc %]
+[% MACRO today_plus_days(days) BLOCK %]
+    [% td = calc.Today() %]
+    [% result = calc.Add_Delta_Days(td.0,td.1,td.2, days) %]
+    [% result.2 %].[% result.1 %].[% result.0 %]
+[% END %]
+
+<!-- Usage example 
+[% today_plus_days(14) %]
+-->
