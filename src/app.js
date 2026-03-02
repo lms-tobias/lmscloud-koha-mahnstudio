@@ -8,6 +8,10 @@ import {
   kohaPlaceholderAutocomplete,
   germanPhrasesExtension,
   htmlLintExtension,
+  reindentKeymap,
+  reindentKeymapHTML,
+  reindentSelectionHTML,
+  runHtmlDomCheck,
 } from './codemirror-extensions.js';
 import { processDocument } from './placeholders.js';
 import { getDefaultSampleData } from './sample-data.js';
@@ -243,7 +247,7 @@ function switchTab(tabName) {
 }
 
 function setupTabs() {
-  document.querySelectorAll('.editors-tabs .tab').forEach((btn) => {
+  document.querySelectorAll('.editors-tabs .tab[data-tab]').forEach((btn) => {
     btn.addEventListener('click', () => switchTab(btn.dataset.tab));
   });
 }
@@ -265,6 +269,7 @@ function setupEditors() {
       html(),
       lineWrapping,
       htmlLintExtension,
+      reindentKeymapHTML,
       kohaPlaceholderHighlight,
       kohaPlaceholderAutocomplete,
       EditorView.updateListener.of((u) => {
@@ -281,6 +286,7 @@ function setupEditors() {
       basicSetup,
       css(),
       lineWrapping,
+      reindentKeymap,
       kohaPlaceholderHighlight,
       EditorView.updateListener.of((u) => {
         if (u.docChanged) schedulePreview();
@@ -384,6 +390,37 @@ function setupHeaderActions() {
   if (btn) btn.addEventListener('click', updatePreview);
   const printBtn = document.getElementById('btnPrint');
   if (printBtn) printBtn.addEventListener('click', openPrintDialog);
+
+  const btnReindentHtml = document.getElementById('btnReindentHtml');
+  if (btnReindentHtml && editorHtmlView) {
+    btnReindentHtml.addEventListener('click', () => {
+      reindentSelectionHTML(editorHtmlView);
+    });
+  }
+
+  const btnHtmlCheck = document.getElementById('btnHtmlCheck');
+  const htmlCheckDialog = document.getElementById('htmlCheckDialog');
+  const htmlCheckSummary = document.getElementById('htmlCheckSummary');
+  const htmlCheckList = document.getElementById('htmlCheckList');
+  const htmlCheckClose = document.getElementById('htmlCheckClose');
+  if (btnHtmlCheck && htmlCheckDialog && htmlCheckSummary && htmlCheckList && htmlCheckClose) {
+    btnHtmlCheck.addEventListener('click', () => {
+      const html = getHtmlContent();
+      const { diagnostics } = runHtmlDomCheck(html);
+      htmlCheckSummary.textContent =
+        diagnostics.length === 0
+          ? 'Keine Probleme gefunden.'
+          : `${diagnostics.length} ${diagnostics.length === 1 ? 'Hinweis' : 'Hinweise'} (bereinigtes HTML):`;
+      htmlCheckList.innerHTML = '';
+      diagnostics.forEach(({ line, message }) => {
+        const li = document.createElement('li');
+        li.textContent = `Zeile ${line}: ${message}`;
+        htmlCheckList.appendChild(li);
+      });
+      htmlCheckDialog.showModal();
+    });
+    htmlCheckClose.addEventListener('click', () => htmlCheckDialog.close());
+  }
 }
 
 function setupPrintShortcut() {

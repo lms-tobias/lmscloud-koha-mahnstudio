@@ -75,6 +75,21 @@ body {
   background: #0b5ed7;
 }
 
+#btnHtmlCheck,
+#btnReindentHtml {
+  padding: 6px 12px;
+  cursor: pointer;
+  background: #fff;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 13px;
+}
+#btnHtmlCheck:hover,
+#btnReindentHtml:hover {
+  background: #f0f0f0;
+}
+
 #btnBranch {
   padding: 6px 12px;
   cursor: pointer;
@@ -169,6 +184,52 @@ body {
   background: #0b5ed7;
 }
 
+/* HTML-Prüfung Dialog */
+.html-check-dialog {
+  max-width: 520px;
+  padding: 0;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+.html-check-dialog::backdrop {
+  background: rgba(0,0,0,0.3);
+}
+.html-check-result {
+  padding: 20px;
+}
+.html-check-summary {
+  margin: 0 0 12px;
+  font-weight: 600;
+}
+.html-check-list {
+  margin: 0;
+  padding-left: 20px;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+.html-check-list li {
+  margin-bottom: 6px;
+}
+.html-check-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 20px;
+  border-top: 1px solid #eee;
+}
+.html-check-dialog-actions button {
+  padding: 8px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+}
+.html-check-dialog-actions button:hover {
+  background: #f0f0f0;
+}
+
 .app-main {
   flex: 1;
   display: flex;
@@ -248,6 +309,17 @@ body {
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
   border-radius: 4px 4px 0 0;
+}
+
+.editors-tabs .tab.tab-action {
+  border-left: 1px solid #ccc;
+  font-weight: 500;
+}
+.editors-tabs #btnHtmlCheck {
+  margin-left: auto;
+}
+.editors-tabs .tab.tab-action:hover {
+  background: #d0e3ff;
 }
 
 .editors-content {

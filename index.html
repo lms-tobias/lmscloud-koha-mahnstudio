@@ -49,11 +49,23 @@
     </form>
   </dialog>
 
+  <dialog id="htmlCheckDialog" class="html-check-dialog" title="HTML-Prüfung">
+    <div class="html-check-result">
+      <p id="htmlCheckSummary" class="html-check-summary"></p>
+      <ul id="htmlCheckList" class="html-check-list"></ul>
+    </div>
+    <div class="html-check-dialog-actions">
+      <button type="button" id="htmlCheckClose">Schließen</button>
+    </div>
+  </dialog>
+
   <main class="app-main" id="appMain">
     <section class="panel-editors">
       <div class="editors-tabs">
         <button type="button" class="tab active" data-tab="html">HTML</button>
         <button type="button" class="tab" data-tab="css">CSS</button>
+        <button type="button" id="btnHtmlCheck" class="tab tab-action" title="HTML auf fehlende/falsche Tags prüfen (Platzhalter werden ignoriert)">HTML prüfen</button>
+        <button type="button" id="btnReindentHtml" class="tab tab-action" title="Einrückung im HTML korrigieren (Mod+Shift+I)">Einrückung korrigieren</button>
       </div>
       <div class="editors-content">
         <div class="editor-wrap active" id="wrapHtml">
