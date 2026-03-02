@@ -2,6 +2,8 @@
 
 MahnStudio ist ein Editor für Koha-Mahnungsvorlagen (HTML/CSS) mit Live-Vorschau. 
 
+<img width="900" alt="preview" src="https://github.com/user-attachments/assets/3eaf7b47-e6b7-4419-bd42-2ffef659d964" />
+
 ## Installation
 
 **Voraussetzung:** [Node.js](https://nodejs.org/) (LTS) und npm.
