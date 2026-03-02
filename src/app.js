@@ -19,6 +19,8 @@ import { getDefaultSampleData } from './sample-data.js';
 const DEBOUNCE_MS = 400;
 const ITEM_COUNT_MIN = 1;
 const ITEM_COUNT_MAX = 25;
+const LETTER_COUNT_MIN = 1;
+const LETTER_COUNT_MAX = 5;
 const BRANCH_STORAGE_KEY = 'mahnstudio.branches';
 
 const BRANCH_FIELD_IDS = [
@@ -77,13 +79,40 @@ function setItemCount(value) {
   return n;
 }
 
+function getLetterCount() {
+  const input = document.getElementById('letterCountInput');
+  const slider = document.getElementById('letterCountSlider');
+  const v = input ? parseInt(input.value, 10) : (slider ? parseInt(slider.value, 10) : 1);
+  return Math.max(LETTER_COUNT_MIN, Math.min(LETTER_COUNT_MAX, isNaN(v) ? 1 : v));
+}
+
+function setLetterCount(value) {
+  const n = Math.max(LETTER_COUNT_MIN, Math.min(LETTER_COUNT_MAX, Math.floor(Number(value)) || LETTER_COUNT_MIN));
+  const input = document.getElementById('letterCountInput');
+  const slider = document.getElementById('letterCountSlider');
+  if (input) input.value = n;
+  if (slider) slider.value = n;
+  return n;
+}
+
 const PREVIEW_PAGE_GUIDE_STYLE = `
 /* Mehrseitige Vorschau: sichtbare Seitenumbrüche (A4-Höhe 297mm) */
 body.mahnstudio-preview { position: relative; min-height: 297mm; }
+/* Simulierter Seitenumbruch: jeder Brief mindestens eine A4-Seite hoch; Bezug für Header/Footer */
+.mahnstudio-preview-page { position: relative; min-height: 297mm; }
+/* In der Vorschau: Header/Footer pro Seite (nicht fixed ans Ende), über der Seitenlinie */
+body.mahnstudio-preview .page-header {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 10000;
+}
+body.mahnstudio-preview .page-footer {
+  position: absolute; bottom: 15.1mm; left: 0; right: 0; z-index: 10000;
+}
 body.mahnstudio-preview::after {
   content: '';
   position: absolute;
-  left: 0; right: 0; top: 0; bottom: 0;
+  top: 0; bottom: 0;
+  left: 0;
+  width: 100vw;
   pointer-events: none;
   z-index: 9999;
   background: linear-gradient(to bottom,
@@ -147,10 +176,14 @@ function getPreviewPaddingFromPageMargins(cssContent) {
   const padding = `${top} ${right} ${bottom} ${left}`;
   const leftMm = parseMm(left);
   const rightMm = parseMm(right);
+  const topMm = parseMm(top);
+  const bottomMm = parseMm(bottom);
   // Basis-Template: @page left=0, body ist 170mm → Breite = 210−rechts, damit Inhalt 170mm bleibt.
   // Andere Templates: volle Seitenbreite, Padding bildet die Ränder.
   const widthMm = leftMm === 0 ? 210 - rightMm : 210;
-  return { padding, widthMm };
+  // Footer in der Vorschau: Abstand unten = margin-bottom + margin-top (wie Druckseite)
+  const footerBottomOffsetMm = topMm + bottomMm;
+  return { padding, widthMm, footerBottomOffsetMm };
 }
 
 function buildPreviewDocument(htmlContent, cssContent) {
@@ -161,7 +194,7 @@ function buildPreviewDocument(htmlContent, cssContent) {
   const pageStyle = getPreviewPaddingFromPageMargins(cssContent);
   const previewPaddingStyle =
     pageStyle
-      ? `body.mahnstudio-preview { width: ${pageStyle.widthMm}mm; padding: ${pageStyle.padding}; box-sizing: border-box; }\n`
+      ? `body.mahnstudio-preview { width: ${pageStyle.widthMm}mm; padding: ${pageStyle.padding}; box-sizing: border-box; }\nbody.mahnstudio-preview .page-footer { bottom: ${pageStyle.footerBottomOffsetMm}mm; }\n`
       : '';
 
   return `<!DOCTYPE html>
@@ -180,9 +213,15 @@ function updatePreview() {
   if (!iframe) return;
   const rawHtml = getHtmlContent();
   const itemCount = getItemCount();
-  const sampleData = getDefaultSampleData(itemCount);
+  const letterCount = getLetterCount();
+  const sampleData = getDefaultSampleData(itemCount, letterCount);
   sampleData.branches = { ...sampleData.branches, ...getCurrentBranches() };
-  const processedHtml = processDocument(rawHtml, sampleData, itemCount);
+  let processedHtml = '';
+  for (let i = 0; i < letterCount; i++) {
+    const letterData = { branches: sampleData.branches, ...sampleData.letters[i] };
+    const letterHtml = processDocument(rawHtml, letterData, itemCount);
+    processedHtml += `<div class="mahnstudio-preview-page">${letterHtml}</div>`;
+  }
   const doc = buildPreviewDocument(processedHtml, getCssContent());
 
   const onLoad = () => {
@@ -201,9 +240,14 @@ function updatePreview() {
 function openPrintDialog() {
   const rawHtml = getHtmlContent();
   const itemCount = getItemCount();
-  const sampleData = getDefaultSampleData(itemCount);
+  const letterCount = getLetterCount();
+  const sampleData = getDefaultSampleData(itemCount, letterCount);
   sampleData.branches = { ...sampleData.branches, ...getCurrentBranches() };
-  const processedHtml = processDocument(rawHtml, sampleData, itemCount);
+  let processedHtml = '';
+  for (let i = 0; i < letterCount; i++) {
+    const letterData = { branches: sampleData.branches, ...sampleData.letters[i] };
+    processedHtml += processDocument(rawHtml, letterData, itemCount);
+  }
   let doc = buildPreviewDocument(processedHtml, getCssContent());
   doc = doc.replace(/\s*class="mahnstudio-preview"/, '');
 
@@ -346,6 +390,26 @@ function setupItemCountSync() {
   input.addEventListener('input', syncFromInput);
 }
 
+function setupLetterCountSync() {
+  const slider = document.getElementById('letterCountSlider');
+  const input = document.getElementById('letterCountInput');
+  if (!slider || !input) return;
+
+  const syncFromSlider = () => {
+    setLetterCount(slider.value);
+    schedulePreview();
+  };
+  const syncFromInput = () => {
+    const n = setLetterCount(input.value);
+    if (slider) slider.value = n;
+    schedulePreview();
+  };
+
+  slider.addEventListener('input', syncFromSlider);
+  input.addEventListener('change', syncFromInput);
+  input.addEventListener('input', syncFromInput);
+}
+
 function setupBranchDialog() {
   const btn = document.getElementById('btnBranch');
   const dialog = document.getElementById('branchDialog');
@@ -354,7 +418,7 @@ function setupBranchDialog() {
   if (!btn || !dialog || !form) return;
 
   function fillForm() {
-    const defaults = getDefaultSampleData(1).branches;
+    const defaults = getDefaultSampleData(1, 1).branches;
     const data = { ...defaults, ...getCurrentBranches() };
     BRANCH_FIELD_IDS.forEach((id) => {
       const input = form.elements.namedItem(id);
@@ -488,6 +552,7 @@ export function initApp() {
   setupTemplateSelect();
   setupEditors();
   setupItemCountSync();
+  setupLetterCountSync();
   setupResizer();
   setupBranchDialog();
   setupHeaderActions();

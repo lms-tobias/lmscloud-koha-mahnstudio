@@ -26,12 +26,20 @@ function formatDate(d) {
   return `${day}.${month}.${d.getFullYear()}`;
 }
 
+/** Beispiel-Benutzer für mehrere Briefe (unterscheidbar in der Vorschau). */
+const SAMPLE_BORROWERS = [
+  { title: 'Herr', firstname: 'Max', surname: 'Mustermann', address: 'Leserstraße', streetnumber: '42', address2: '', zipcode: '54321', city: 'Leserstadt', cardnumber: 'L-12345' },
+  { title: 'Frau', firstname: 'Anna', surname: 'Beispiel', address: 'Büchergasse', streetnumber: '7', address2: '', zipcode: '54322', city: 'Leserstadt', cardnumber: 'L-12346' },
+  { title: 'Herr', firstname: 'Peter', surname: 'Test', address: 'Medienweg', streetnumber: '15', address2: '2. OG', zipcode: '54323', city: 'Musterstadt', cardnumber: 'L-12347' },
+  { title: 'Frau', firstname: 'Lisa', surname: 'Muster', address: 'Bibliotheksplatz', streetnumber: '1', address2: '', zipcode: '54324', city: 'Musterstadt', cardnumber: 'L-12348' },
+  { title: 'Herr', firstname: 'Thomas', surname: 'Leser', address: 'Buchstraße', streetnumber: '99', address2: '', zipcode: '54325', city: 'Leserstadt', cardnumber: 'L-12349' },
+];
+
 /**
- * Liefert SampleData mit genau count Einträgen in items/biblio/biblioitems/issues.
- * branches/borrowers/fines/total_fines/today mit Platzhalterwerten.
+ * Erzeugt die Daten für einen einzelnen Brief (items/biblio/borrowers/fines usw.).
  */
-export function getDefaultSampleData(count = 3) {
-  const n = Math.max(0, Math.min(25, Math.floor(Number(count) || 0))) || 1;
+function buildLetterData(itemCount, borrowerIndex) {
+  const n = Math.max(0, Math.min(25, Math.floor(Number(itemCount) || 0))) || 1;
   const items = [];
   const biblio = [];
   const biblioitems = [];
@@ -41,7 +49,7 @@ export function getDefaultSampleData(count = 3) {
     const due = new Date();
     due.setDate(due.getDate() - 7 - i);
     items.push({
-      barcode: `MED-${1000 + i}`,
+      barcode: `MED-${1000 + borrowerIndex * 100 + i}`,
       enumchron: i === 0 ? '' : `Bd. ${i}`,
       fine: `${(1.5 + i * 0.5).toFixed(2)} €`,
     });
@@ -53,6 +61,33 @@ export function getDefaultSampleData(count = 3) {
   const finesSum = items.reduce((sum, it) => sum + parseFloat((it.fine || '0').replace(',', '.').replace(/[^\d.]/g, '')) || 0, 0);
   const finesStr = `${finesSum.toFixed(2)} €`;
   const totalFines = (finesSum + 2.5).toFixed(2) + ' €';
+
+  const borrower = SAMPLE_BORROWERS[borrowerIndex % SAMPLE_BORROWERS.length];
+
+  return {
+    borrowers: { ...borrower },
+    items,
+    biblio,
+    biblioitems,
+    issues,
+    fines: finesStr,
+    total_fines: totalFines,
+    today: formatDate(new Date()),
+  };
+}
+
+/**
+ * Liefert SampleData mit branches und letters: [ letterData1, letterData2, ... ].
+ * Jedes letterData hat borrowers, items, biblio, biblioitems, issues, fines, total_fines, today.
+ * count = Anzahl Medien pro Brief, letterCount = Anzahl Briefe (Benutzer).
+ */
+export function getDefaultSampleData(count = 3, letterCount = 1) {
+  const numLetters = Math.max(1, Math.min(10, Math.floor(Number(letterCount) || 0))) || 1;
+  const letters = [];
+
+  for (let i = 0; i < numLetters; i++) {
+    letters.push(buildLetterData(count, i));
+  }
 
   return {
     branches: {
@@ -66,23 +101,6 @@ export function getDefaultSampleData(count = 3) {
       branchurl: 'https://opac.example.com',
       opac_info: 'Öffnungszeiten: Mo–Fr 10–18 Uhr',
     },
-    borrowers: {
-      title: 'Herr',
-      firstname: 'Max',
-      surname: 'Mustermann',
-      address: 'Leserstraße',
-      streetnumber: '42',
-      address2: '',
-      zipcode: '54321',
-      city: 'Leserstadt',
-      cardnumber: 'L-12345',
-    },
-    items,
-    biblio,
-    biblioitems,
-    issues,
-    fines: finesStr,
-    total_fines: totalFines,
-    today: formatDate(new Date()),
+    letters,
   };
 }
