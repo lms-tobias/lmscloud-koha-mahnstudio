@@ -449,11 +449,39 @@ function setupBranchDialog() {
   });
 }
 
+function copyCurrentEditorContent() {
+  const activeTab = document.querySelector('.editors-tabs .tab.active');
+  if (!activeTab) return;
+
+  const isHtmlTab = activeTab.dataset.tab === 'html';
+  const content = isHtmlTab ? getHtmlContent() : getCssContent();
+
+  if (!content) return;
+
+  navigator.clipboard.writeText(content).then(() => {
+    const toast = document.createElement('div');
+    toast.className = 'copy-toast';
+    toast.textContent = isHtmlTab ? 'HTML kopiert!' : 'CSS kopiert!';
+    document.body.appendChild(toast);
+    setTimeout(() => {
+      toast.remove();
+    }, 2000);
+  }).catch((err) => {
+    console.error('Kopieren fehlgeschlagen:', err);
+    alert('Kopieren in Zwischenablage fehlgeschlagen. Bitte manuell kopieren.');
+  });
+}
+
 function setupHeaderActions() {
   const btn = document.getElementById('btnRefreshPreview');
   if (btn) btn.addEventListener('click', updatePreview);
   const printBtn = document.getElementById('btnPrint');
   if (printBtn) printBtn.addEventListener('click', openPrintDialog);
+
+  const btnCopyCode = document.getElementById('btnCopyCode');
+  if (btnCopyCode) {
+    btnCopyCode.addEventListener('click', copyCurrentEditorContent);
+  }
 
   const btnReindentHtml = document.getElementById('btnReindentHtml');
   if (btnReindentHtml && editorHtmlView) {

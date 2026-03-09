@@ -85,8 +85,20 @@ body {
   border-radius: 6px;
   font-size: 13px;
 }
+#btnCopyCode {
+  padding: 6px 12px;
+  cursor: pointer;
+  background: #fff;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 13px;
+}
 #btnHtmlCheck:hover,
 #btnReindentHtml:hover {
+  background: #f0f0f0;
+}
+#btnCopyCode:hover {
   background: #f0f0f0;
 }
 
@@ -514,4 +526,24 @@ body {
   #previewFrame {
     transform-origin: top center;
   }
+}
+
+
+
+.copy-toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  border-radius: 4px;
+  font-size: 14px;
+  z-index: 10000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
