@@ -39,7 +39,7 @@ const SAMPLE_BORROWERS = [
  * Erzeugt die Daten für einen einzelnen Brief (items/biblio/borrowers/fines usw.).
  */
 function buildLetterData(itemCount, borrowerIndex) {
-  const n = Math.max(0, Math.min(25, Math.floor(Number(itemCount) || 0))) || 1;
+  const n = Math.max(0, Math.min(100, Math.floor(Number(itemCount) || 0))) || 1;
   const items = [];
   const biblio = [];
   const biblioitems = [];

@@ -81,7 +81,7 @@ const ITEM_BLOCK_REGEX = /<item\s*>([\s\S]*?)<\/item>/gi;
  * Ersetzt <item>...</item> durch itemCount Zeilen; pro Zeile werden Platzhalter mit items[i] usw. ersetzt.
  */
 export function expandItemBlocks(html, sampleData, itemCount) {
-  const count = Math.max(0, Math.min(25, Math.floor(Number(itemCount) || 0)));
+  const count = Math.max(0, Math.min(100, Math.floor(Number(itemCount) || 0)));
   return html.replace(ITEM_BLOCK_REGEX, (match, inner) => {
     let result = '';
     for (let i = 0; i < count; i++) {

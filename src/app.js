@@ -18,7 +18,7 @@ import { getDefaultSampleData } from './sample-data.js';
 
 const DEBOUNCE_MS = 400;
 const ITEM_COUNT_MIN = 1;
-const ITEM_COUNT_MAX = 25;
+const ITEM_COUNT_MAX = 100;
 const LETTER_COUNT_MIN = 1;
 const LETTER_COUNT_MAX = 5;
 const BRANCH_STORAGE_KEY = 'mahnstudio.branches';
