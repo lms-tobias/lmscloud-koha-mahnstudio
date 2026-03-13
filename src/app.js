@@ -15,6 +15,11 @@ import {
 } from './codemirror-extensions.js';
 import { processDocument } from './placeholders.js';
 import { getDefaultSampleData } from './sample-data.js';
+import {
+  parseMarkerRegions,
+  injectContentIntoBaseHtml,
+  getRegionContentsFromHtml,
+} from './content-markers.js';
 
 const DEBOUNCE_MS = 400;
 const ITEM_COUNT_MIN = 1;
@@ -22,6 +27,7 @@ const ITEM_COUNT_MAX = 100;
 const LETTER_COUNT_MIN = 1;
 const LETTER_COUNT_MAX = 5;
 const BRANCH_STORAGE_KEY = 'mahnstudio.branches';
+const CONTENT_BLOCKS_STORAGE_KEY = 'mahnstudio.contentBlocks';
 
 const BRANCH_FIELD_IDS = [
   'branchname', 'branchaddress1', 'branchaddress2', 'branchzip', 'branchcity',
@@ -31,9 +37,15 @@ const BRANCH_FIELD_IDS = [
 let editorHtmlView;
 let editorCssView;
 let debounceTimer = null;
+let inhaltTabDebounceTimer = null;
+const INHALT_TAB_DEBOUNCE_MS = 600;
 
 /** Manuell gepflegte Bibliotheksdaten (über Branch-UI). Überschreibt Defaults in der Vorschau. */
 let currentBranches = {};
+
+/** Inhaltsblöcke (1. Mahnung, 2. Mahnung, …) für Marker-Regionen im Basis-HTML. */
+let contentBlocks = [];
+let activeContentBlockId = null;
 
 function loadBranchesFromStorage() {
   try {
@@ -61,6 +73,16 @@ function getHtmlContent() {
 
 function getCssContent() {
   return editorCssView ? editorCssView.state.doc.toString() : '';
+}
+
+/** Basis-HTML mit eingefügten Inhalten des aktiven Inhaltsblocks. Keine Marker-Inhalte, wenn keine Marker oder kein aktiver Block. */
+function getEffectiveHtml() {
+  const baseHtml = getHtmlContent();
+  const regions = parseMarkerRegions(baseHtml);
+  if (regions.length === 0) return baseHtml;
+  const active = contentBlocks.find((b) => b.id === activeContentBlockId);
+  if (!active) return baseHtml;
+  return injectContentIntoBaseHtml(baseHtml, active.regions);
 }
 
 function getItemCount() {
@@ -211,7 +233,7 @@ function buildPreviewDocument(htmlContent, cssContent) {
 function updatePreview() {
   const iframe = document.getElementById('previewFrame');
   if (!iframe) return;
-  const rawHtml = getHtmlContent();
+  const rawHtml = getEffectiveHtml();
   const itemCount = getItemCount();
   const letterCount = getLetterCount();
   const sampleData = getDefaultSampleData(itemCount, letterCount);
@@ -238,7 +260,7 @@ function updatePreview() {
 }
 
 function openPrintDialog() {
-  const rawHtml = getHtmlContent();
+  const rawHtml = getEffectiveHtml();
   const itemCount = getItemCount();
   const letterCount = getLetterCount();
   const sampleData = getDefaultSampleData(itemCount, letterCount);
@@ -274,10 +296,310 @@ function setEditorContent(view, content) {
   view.dispatch({ changes: { from: 0, to: len, insert: content } });
 }
 
+const REGION_LABELS = { BETREFF: 'Betreff', CONTENT: 'Inhalt' };
+let contentRegionViews = {};
+let contentRegionWraps = {};
+let previousContentRegionIds = [];
+
+const CONTENT_FIT_MIN_HEIGHT = 40;
+const CONTENT_FIT_HEIGHT_BUFFER = 20;
+function setContentRegionWrapHeightToContent(view, wrap) {
+  if (!view || !wrap) return;
+  requestAnimationFrame(() => {
+    const len = view.state.doc.length;
+    const start = view.coordsAtPos(0);
+    const end = len > 0 ? view.coordsAtPos(len) : start;
+    const contentH = end && start ? Math.ceil(end.bottom - start.top) : CONTENT_FIT_MIN_HEIGHT;
+    const h = Math.max(CONTENT_FIT_MIN_HEIGHT, contentH + CONTENT_FIT_HEIGHT_BUFFER);
+    wrap.style.height = `${h}px`;
+  });
+}
+
+function saveContentBlocksToStorage() {
+  try {
+    localStorage.setItem(
+      CONTENT_BLOCKS_STORAGE_KEY,
+      JSON.stringify({ contentBlocks, activeContentBlockId })
+    );
+  } catch (_) {}
+}
+
+function loadContentBlocksFromStorage() {
+  try {
+    const raw = localStorage.getItem(CONTENT_BLOCKS_STORAGE_KEY);
+    if (!raw) return;
+    const { contentBlocks: loaded, activeContentBlockId: activeId } = JSON.parse(raw);
+    if (Array.isArray(loaded) && loaded.length > 0) {
+      contentBlocks = loaded;
+      for (const b of contentBlocks) {
+        const fromBetreff = nameFromBetreff(b.regions);
+        if (fromBetreff && /^Inhalt \d+$/.test(b.name)) b.name = fromBetreff;
+      }
+      if (activeId && loaded.some((b) => b.id === activeId)) activeContentBlockId = activeId;
+      else activeContentBlockId = loaded[0].id;
+    }
+  } catch (_) {}
+}
+
+function nameFromBetreff(regions) {
+  const raw = regions?.BETREFF;
+  if (!raw) return null;
+  const text = raw.replace(/<[^>]*>/g, '').trim();
+  return text || null;
+}
+
+function initContentBlocksFromBaseHtml() {
+  const baseHtml = getHtmlContent();
+  const regions = parseMarkerRegions(baseHtml);
+  if (regions.length === 0) return;
+  if (contentBlocks.length > 0) return;
+  const regionsContent = getRegionContentsFromHtml(baseHtml);
+  const block = {
+    id: crypto.randomUUID(),
+    name: nameFromBetreff(regionsContent) || 'Inhalt 1',
+    regions: { ...regionsContent },
+  };
+  contentBlocks = [block];
+  activeContentBlockId = block.id;
+}
+
+function updateInhaltTabAvailability() {
+  const tab = document.getElementById('tabInhalt');
+  if (!tab) return;
+  const regions = parseMarkerRegions(getHtmlContent());
+  if (regions.length === 0) {
+    tab.disabled = true;
+    tab.title = 'Basis-HTML enthält keine <!-- BEGIN … --> / <!-- END … --> Marker. Bitte im HTML-Tab Marker setzen.';
+  } else {
+    tab.disabled = false;
+    tab.removeAttribute('title');
+  }
+}
+
+function ensureContentRegionEditors() {
+  const baseHtml = getHtmlContent();
+  const regions = parseMarkerRegions(baseHtml);
+  const ids = regions.map((r) => r.id).sort();
+  const idsKey = ids.join(',');
+  if (idsKey === previousContentRegionIds.join(',')) {
+    syncContentRegionEditorsToActiveBlock();
+    return;
+  }
+  previousContentRegionIds = ids;
+  const container = document.getElementById('contentRegionEditors');
+  if (!container) return;
+  container.innerHTML = '';
+  contentRegionViews = {};
+  contentRegionWraps = {};
+  const active = contentBlocks.find((b) => b.id === activeContentBlockId);
+
+  regions.forEach((r, index) => {
+    const section = document.createElement('div');
+    section.className = 'content-region-section' + (index === 0 ? ' content-region-section-fit' : '');
+    const label = document.createElement('label');
+    label.className = 'content-region-label';
+    label.textContent = REGION_LABELS[r.id] ?? r.id;
+    const wrap = document.createElement('div');
+    wrap.className = 'content-region-editor-wrap';
+    section.appendChild(label);
+    section.appendChild(wrap);
+    container.appendChild(section);
+    const doc = active?.regions[r.id] ?? r.content;
+    const isFitSection = index === 0;
+    const view = new EditorView({
+      doc,
+      parent: wrap,
+      extensions: [
+        germanPhrasesExtension,
+        basicSetup,
+        html(),
+        lineWrapping,
+        kohaPlaceholderHighlight,
+        kohaPlaceholderAutocomplete,
+        EditorView.updateListener.of((u) => {
+          if (u.docChanged) {
+            const block = contentBlocks.find((b) => b.id === activeContentBlockId);
+            if (block && block.regions[r.id] !== undefined) {
+              block.regions[r.id] = view.state.doc.toString();
+              schedulePreview();
+              saveContentBlocksToStorage();
+            }
+            if (isFitSection) setContentRegionWrapHeightToContent(view, wrap);
+          }
+        }),
+      ],
+    });
+    contentRegionViews[r.id] = view;
+    contentRegionWraps[r.id] = wrap;
+    if (isFitSection) {
+      setContentRegionWrapHeightToContent(view, wrap);
+      setTimeout(() => setContentRegionWrapHeightToContent(view, wrap), 100);
+    }
+  });
+}
+
+function syncContentRegionEditorsToActiveBlock() {
+  const active = contentBlocks.find((b) => b.id === activeContentBlockId);
+  if (!active) return;
+  const fitId = previousContentRegionIds[0];
+  for (const [id, view] of Object.entries(contentRegionViews)) {
+    const text = active.regions[id] ?? '';
+    const current = view.state.doc.toString();
+    if (current !== text) setEditorContent(view, text);
+  }
+  if (fitId && contentRegionWraps[fitId]) {
+    const view = contentRegionViews[fitId];
+    const wrap = contentRegionWraps[fitId];
+    if (view) {
+      setContentRegionWrapHeightToContent(view, wrap);
+      setTimeout(() => setContentRegionWrapHeightToContent(view, wrap), 80);
+    }
+  }
+}
+
+function updateContentBlockList(listEl, selectedName) {
+  if (!listEl) return;
+  listEl.innerHTML = '';
+  for (const b of contentBlocks) {
+    const item = document.createElement('div');
+    item.className = 'content-block-list-item' + (b.id === activeContentBlockId ? ' active' : '');
+    item.setAttribute('role', 'option');
+    item.dataset.blockId = b.id;
+    item.textContent = b.name;
+    listEl.appendChild(item);
+  }
+  if (selectedName !== undefined) {
+    const input = document.getElementById('contentBlockName');
+    if (input) input.value = selectedName;
+  }
+}
+
+function updateContentBlockUI() {
+  const nameInput = document.getElementById('contentBlockName');
+  const listEl = document.getElementById('contentBlockList');
+  if (!nameInput) return;
+  const active = contentBlocks.find((b) => b.id === activeContentBlockId);
+  const activeName = active ? active.name : '';
+  nameInput.value = activeName;
+  nameInput.disabled = contentBlocks.length === 0;
+  updateContentBlockList(listEl, activeName);
+  document.getElementById('btnAddContent').disabled = contentBlocks.length === 0;
+  const removeBtn = document.getElementById('btnRemoveContent');
+  if (removeBtn) removeBtn.disabled = contentBlocks.length === 0;
+  ensureContentRegionEditors();
+}
+
+function setupContentTab() {
+  loadContentBlocksFromStorage();
+  const baseHtml = getHtmlContent();
+  const regions = parseMarkerRegions(baseHtml);
+  if (regions.length === 0) {
+    updateInhaltTabAvailability();
+    return;
+  }
+  if (contentBlocks.length === 0) initContentBlocksFromBaseHtml();
+  saveContentBlocksToStorage();
+  updateInhaltTabAvailability();
+
+  const nameInput = document.getElementById('contentBlockName');
+  const listToggle = document.getElementById('contentBlockListToggle');
+  const listEl = document.getElementById('contentBlockList');
+  const btnAdd = document.getElementById('btnAddContent');
+  const btnRemove = document.getElementById('btnRemoveContent');
+  if (!nameInput || !listToggle || !listEl || !btnAdd || !btnRemove) return;
+
+  function closeList() {
+    listEl.classList.remove('open');
+    listEl.setAttribute('aria-hidden', 'true');
+    listToggle.setAttribute('aria-expanded', 'false');
+  }
+
+  function openList() {
+    if (contentBlocks.length === 0) return;
+    updateContentBlockList(listEl);
+    listEl.classList.add('open');
+    listEl.setAttribute('aria-hidden', 'false');
+    listToggle.setAttribute('aria-expanded', 'true');
+  }
+
+  listToggle.addEventListener('click', () => {
+    if (listEl.classList.contains('open')) closeList();
+    else openList();
+  });
+
+  listEl.addEventListener('click', (e) => {
+    const item = e.target.closest('.content-block-list-item');
+    if (!item) return;
+    activeContentBlockId = item.dataset.blockId || null;
+    saveContentBlocksToStorage();
+    syncContentRegionEditorsToActiveBlock();
+    nameInput.value = contentBlocks.find((b) => b.id === activeContentBlockId)?.name ?? '';
+    closeList();
+    updateContentBlockList(listEl);
+    schedulePreview();
+  });
+
+  nameInput.addEventListener('input', () => {
+    const active = contentBlocks.find((b) => b.id === activeContentBlockId);
+    if (active) {
+      active.name = nameInput.value.trim() || active.name;
+      const item = listEl.querySelector(`.content-block-list-item[data-block-id="${active.id}"]`);
+      if (item) item.textContent = active.name;
+      saveContentBlocksToStorage();
+    }
+  });
+
+  nameInput.addEventListener('focus', () => closeList());
+
+  document.addEventListener('click', (e) => {
+    if (!document.getElementById('contentCombobox')?.contains(e.target)) closeList();
+  });
+
+  btnAdd.addEventListener('click', () => {
+    const active = contentBlocks.find((b) => b.id === activeContentBlockId);
+    if (!active) return;
+    const newBlock = {
+      id: crypto.randomUUID(),
+      name: nameFromBetreff(active.regions) || `Inhalt ${contentBlocks.length + 1}`,
+      regions: { ...active.regions },
+    };
+    contentBlocks.push(newBlock);
+    activeContentBlockId = newBlock.id;
+    saveContentBlocksToStorage();
+    updateContentBlockUI();
+    schedulePreview();
+  });
+
+  btnRemove.addEventListener('click', () => {
+    if (contentBlocks.length === 0) return;
+    const active = contentBlocks.find((b) => b.id === activeContentBlockId);
+    if (!active) return;
+    const ok = window.confirm('Diesen Inhalt wirklich löschen?');
+    if (!ok) return;
+    contentBlocks = contentBlocks.filter((b) => b.id !== active.id);
+    if (contentBlocks.length === 0) {
+      activeContentBlockId = null;
+    } else if (!contentBlocks.some((b) => b.id === activeContentBlockId)) {
+      activeContentBlockId = contentBlocks[0].id;
+    }
+    saveContentBlocksToStorage();
+    updateContentBlockUI();
+    schedulePreview();
+  });
+
+  updateContentBlockUI();
+}
+
 function loadTemplate(template) {
   if (!template) return;
   setEditorContent(editorHtmlView, template.html);
   setEditorContent(editorCssView, template.css);
+  contentBlocks = [];
+  activeContentBlockId = null;
+  initContentBlocksFromBaseHtml();
+  updateInhaltTabAvailability();
+  saveContentBlocksToStorage();
+  updateContentBlockUI();
   updatePreview();
 }
 
@@ -285,14 +607,30 @@ function switchTab(tabName) {
   document.querySelectorAll('.editors-tabs .tab').forEach((t) => t.classList.remove('active'));
   document.querySelectorAll('.editor-wrap').forEach((w) => w.classList.remove('active'));
   const tab = document.querySelector(`.editors-tabs .tab[data-tab="${tabName}"]`);
-  const wrap = document.getElementById(`wrap${tabName === 'html' ? 'Html' : 'Css'}`);
+  const wrapId = tabName === 'html' ? 'Html' : tabName === 'css' ? 'Css' : 'Inhalt';
+  const wrap = document.getElementById(`wrap${wrapId}`);
   if (tab) tab.classList.add('active');
   if (wrap) wrap.classList.add('active');
+
+  const btnReindentHtml = document.getElementById('btnReindentHtml');
+  if (btnReindentHtml) {
+    if (tabName === 'inhalt') {
+      btnReindentHtml.disabled = true;
+      btnReindentHtml.title =
+        'Einrückung im INHALT-Tab ist derzeit nicht verfügbar. Bitte HTML-Tab verwenden.';
+    } else {
+      btnReindentHtml.disabled = false;
+      btnReindentHtml.title = 'Einrückung im HTML korrigieren (Mod+Shift+I)';
+    }
+  }
 }
 
 function setupTabs() {
   document.querySelectorAll('.editors-tabs .tab[data-tab]').forEach((btn) => {
-    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    btn.addEventListener('click', () => {
+      if (btn.disabled) return;
+      switchTab(btn.dataset.tab);
+    });
   });
 }
 
@@ -317,7 +655,16 @@ function setupEditors() {
       kohaPlaceholderHighlight,
       kohaPlaceholderAutocomplete,
       EditorView.updateListener.of((u) => {
-        if (u.docChanged) schedulePreview();
+        if (u.docChanged) {
+          schedulePreview();
+          if (inhaltTabDebounceTimer) clearTimeout(inhaltTabDebounceTimer);
+          inhaltTabDebounceTimer = setTimeout(() => {
+            inhaltTabDebounceTimer = null;
+            updateInhaltTabAvailability();
+            const activeTab = document.querySelector('.editors-tabs .tab.active');
+            if (activeTab?.dataset.tab === 'inhalt') updateContentBlockUI();
+          }, INHALT_TAB_DEBOUNCE_MS);
+        }
       }),
     ],
   });
@@ -453,15 +800,26 @@ function copyCurrentEditorContent() {
   const activeTab = document.querySelector('.editors-tabs .tab.active');
   if (!activeTab) return;
 
-  const isHtmlTab = activeTab.dataset.tab === 'html';
-  const content = isHtmlTab ? getHtmlContent() : getCssContent();
+  const tabName = activeTab.dataset.tab;
+  let content = '';
+  let isHtmlLike = false;
+
+  if (tabName === 'html') {
+    content = getHtmlContent();
+    isHtmlLike = true;
+  } else if (tabName === 'inhalt') {
+    content = getEffectiveHtml();
+    isHtmlLike = true;
+  } else {
+    content = getCssContent();
+  }
 
   if (!content) return;
 
   navigator.clipboard.writeText(content).then(() => {
     const toast = document.createElement('div');
     toast.className = 'copy-toast';
-    toast.textContent = isHtmlTab ? 'HTML kopiert!' : 'CSS kopiert!';
+    toast.textContent = isHtmlLike ? 'HTML kopiert!' : 'CSS kopiert!';
     document.body.appendChild(toast);
     setTimeout(() => {
       toast.remove();
@@ -484,9 +842,13 @@ function setupHeaderActions() {
   }
 
   const btnReindentHtml = document.getElementById('btnReindentHtml');
-  if (btnReindentHtml && editorHtmlView) {
+  if (btnReindentHtml) {
     btnReindentHtml.addEventListener('click', () => {
-      reindentSelectionHTML(editorHtmlView);
+      const activeTab = document.querySelector('.editors-tabs .tab.active');
+      if (!activeTab) return;
+      if (activeTab.dataset.tab === 'html' && editorHtmlView) {
+        reindentSelectionHTML(editorHtmlView);
+      }
     });
   }
 
@@ -497,7 +859,9 @@ function setupHeaderActions() {
   const htmlCheckClose = document.getElementById('htmlCheckClose');
   if (btnHtmlCheck && htmlCheckDialog && htmlCheckSummary && htmlCheckList && htmlCheckClose) {
     btnHtmlCheck.addEventListener('click', () => {
-      const html = getHtmlContent();
+      const activeTab = document.querySelector('.editors-tabs .tab.active');
+      const tabName = activeTab?.dataset.tab;
+      const html = tabName === 'inhalt' ? getEffectiveHtml() : getHtmlContent();
       const { diagnostics } = runHtmlDomCheck(html);
       htmlCheckSummary.textContent =
         diagnostics.length === 0
@@ -579,6 +943,7 @@ export function initApp() {
   setupTabs();
   setupTemplateSelect();
   setupEditors();
+  setupContentTab();
   setupItemCountSync();
   setupLetterCountSync();
   setupResizer();

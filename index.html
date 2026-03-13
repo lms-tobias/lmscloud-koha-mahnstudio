@@ -63,14 +63,53 @@
     <section class="panel-editors">
       <div class="editors-tabs">
         <button type="button" class="tab active" data-tab="html">HTML</button>
+        <button type="button" class="tab" id="tabInhalt" data-tab="inhalt" title="Basis-HTML enthält keine <!-- BEGIN … --> / <!-- END … --> Marker. Bitte im HTML-Tab Marker setzen.">INHALT</button>
         <button type="button" class="tab" data-tab="css">CSS</button>
-        <button type="button" id="btnHtmlCheck" class="tab tab-action" title="HTML auf fehlende/falsche Tags prüfen (Platzhalter werden ignoriert)">HTML prüfen</button>
-        <button type="button" id="btnCopyCode" class="tab tab-action" title="Aktuellen Code (HTML/CSS) in die Zwischenablage kopieren">Code kopieren</button>
-        <button type="button" id="btnReindentHtml" class="tab tab-action" title="Einrückung im HTML korrigieren (Mod+Shift+I)">Einrückung korrigieren</button>
+        <button
+          type="button"
+          id="btnHtmlCheck"
+          class="tab tab-action"
+          title="HTML auf fehlende/falsche Tags prüfen (Platzhalter werden ignoriert)"
+          aria-label="HTML prüfen"
+        >
+          🔍
+        </button>
+        <button
+          type="button"
+          id="btnCopyCode"
+          class="tab tab-action"
+          title="Aktuellen Code (HTML/CSS) in die Zwischenablage kopieren"
+          aria-label="Code kopieren"
+        >
+          📋
+        </button>
+        <button
+          type="button"
+          id="btnReindentHtml"
+          class="tab tab-action"
+          title="Einrückung im HTML korrigieren (Mod+Shift+I)"
+          aria-label="Einrückung korrigieren"
+        >
+          ⇥
+        </button>
       </div>
       <div class="editors-content">
         <div class="editor-wrap active" id="wrapHtml">
           <div id="editorHtml"></div>
+        </div>
+        <div class="editor-wrap" id="wrapInhalt">
+          <div class="content-toolbar">
+            <div class="content-combobox" id="contentCombobox">
+              <input type="text" id="contentBlockName" placeholder="z. B. 1. Mahnung" title="Inhalt wählen oder Namen bearbeiten" autocomplete="off" />
+              <button type="button" class="content-combobox-toggle" id="contentBlockListToggle" title="Inhaltsvariante wählen" aria-label="Liste öffnen" aria-expanded="false">▼</button>
+              <div class="content-block-list" id="contentBlockList" role="listbox" aria-hidden="true"></div>
+            </div>
+            <div class="content-actions">
+              <button type="button" id="btnAddContent" class="content-add-btn" title="Neuen Inhalt anlegen (Kopie des aktiven Inhalts)" aria-label="Inhalt hinzufügen">+</button>
+              <button type="button" id="btnRemoveContent" class="content-remove-btn" title="Aktuellen Inhalt löschen" aria-label="Inhalt löschen">−</button>
+            </div>
+          </div>
+          <div class="content-region-editors" id="contentRegionEditors"></div>
         </div>
         <div class="editor-wrap" id="wrapCss">
           <div id="editorCss"></div>

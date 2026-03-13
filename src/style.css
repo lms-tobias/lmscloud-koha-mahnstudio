@@ -334,6 +334,11 @@ body {
   background: #d0e3ff;
 }
 
+.editors-tabs .tab:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .editors-content {
   flex: 1;
   min-height: 0;
@@ -422,6 +427,237 @@ body {
   padding: 4px 8px;
   border-radius: 4px;
   cursor: pointer;
+}
+
+/* Tab Inhalt: Toolbar und Region-Editoren */
+#wrapInhalt {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+#wrapInhalt .content-toolbar {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: var(--border);
+  background: #eee;
+  position: relative;
+  overflow: visible;
+}
+
+/* Combobox: Eingabefeld + Dropdown-Liste in einem */
+#wrapInhalt .content-combobox {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  min-width: 200px;
+}
+
+#wrapInhalt .content-combobox input {
+  padding: 6px 10px;
+  font-size: 13px;
+  flex: 1;
+  min-width: 0;
+  border: 1px solid #ccc;
+  border-right: none;
+  border-radius: 6px 0 0 6px;
+  background: #fff;
+}
+
+#wrapInhalt .content-combobox-toggle {
+  padding: 0 10px;
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  background: #fff;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 0 6px 6px 0;
+}
+
+#wrapInhalt .content-combobox input:focus,
+#wrapInhalt .content-combobox-toggle:focus {
+  outline: none;
+}
+
+#wrapInhalt .content-combobox:focus-within {
+  outline: 2px solid #0d6efd;
+  outline-offset: 1px;
+  border-radius: 6px;
+}
+
+#wrapInhalt .content-combobox-toggle:hover {
+  background: #f0f0f0;
+}
+
+#wrapInhalt .content-block-list {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 2px;
+  max-height: 220px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  z-index: 2000;
+}
+
+#wrapInhalt .content-block-list.open {
+  display: block;
+}
+
+#wrapInhalt .content-block-list-item {
+  padding: 8px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+}
+
+#wrapInhalt .content-block-list-item:last-child {
+  border-bottom: none;
+}
+
+#wrapInhalt .content-block-list-item:hover,
+#wrapInhalt .content-block-list-item.active {
+  background: #e8f0fe;
+}
+
+#wrapInhalt .content-toolbar .content-add-btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font-size: 18px;
+  line-height: 1;
+  font-weight: 500;
+  cursor: pointer;
+  background: #fff;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+#wrapInhalt .content-toolbar .content-add-btn:hover {
+  background: #f0f0f0;
+}
+
+#wrapInhalt .content-toolbar .content-remove-btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font-size: 18px;
+  line-height: 1;
+  font-weight: 500;
+  cursor: pointer;
+  background: #fff;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+#wrapInhalt .content-toolbar .content-remove-btn:hover {
+  background: #ffe5e5;
+}
+
+#wrapInhalt .content-toolbar .content-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+#wrapInhalt #contentRegionEditors {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+}
+
+#wrapInhalt .content-region-section {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 120px;
+  margin-bottom: 12px;
+}
+
+#wrapInhalt .content-region-section.content-region-section-fit {
+  flex: 0 0 auto;
+  min-height: 0;
+  margin-bottom: 12px;
+}
+
+#wrapInhalt .content-region-section:last-child {
+  margin-bottom: 0;
+}
+
+#wrapInhalt .content-region-label {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 4px;
+}
+
+#wrapInhalt .content-region-editor-wrap {
+  flex: 1;
+  min-height: 100px;
+  overflow: hidden;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: var(--bg-editor);
+}
+
+#wrapInhalt .content-region-section-fit .content-region-editor-wrap {
+  flex: 0 0 auto;
+  min-height: 40px;
+}
+
+#wrapInhalt .content-region-editor-wrap .cm-editor {
+  height: 100%;
+  min-height: 100px;
+}
+
+#wrapInhalt .content-region-section-fit .content-region-editor-wrap .cm-editor {
+  min-height: 40px;
+}
+
+#wrapInhalt .content-region-editor-wrap .cm-scroller {
+  overflow: auto !important;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+#wrapInhalt .content-region-editor-wrap .cm-koha-placeholder,
+#wrapInhalt .content-region-editor-wrap .cm-koha-placeholder * {
+  color: #003585 !important;
+  font-weight: 500;
+}
+#wrapInhalt .content-region-editor-wrap .cm-koha-placeholder {
+  border-bottom: 1px dotted #003585;
+}
+
+/* Ohne Fokus: Cursor, Zeilen- und Auswahl-Highlight ausblenden */
+#wrapInhalt .content-region-editor-wrap .cm-editor:not(.cm-focused) .cm-cursor,
+#wrapInhalt .content-region-editor-wrap .cm-editor:not(.cm-focused) .cm-cursorLayer {
+  visibility: hidden;
+}
+#wrapInhalt .content-region-editor-wrap .cm-editor:not(.cm-focused) .cm-activeLine,
+#wrapInhalt .content-region-editor-wrap .cm-editor:not(.cm-focused) .cm-activeLineGutter {
+  background: transparent;
+}
+#wrapInhalt .content-region-editor-wrap .cm-editor:not(.cm-focused) .cm-selectionBackground,
+#wrapInhalt .content-region-editor-wrap .cm-editor:not(.cm-focused) .cm-selectionMatch {
+  background: transparent !important;
 }
 
 /* Rechte Seite: Vorschau */
